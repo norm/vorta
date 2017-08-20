@@ -2,4 +2,10 @@ from os import getenv
 from vorta import Vorta
 
 
-bot = Vorta(getenv('SLACK_BOT_TOKEN'), debug=True)
+class TestBot(Vorta):
+    desired_channels = [
+        '#testing',
+    ]
+
+
+bot = TestBot(getenv('SLACK_BOT_TOKEN'), debug=True)
