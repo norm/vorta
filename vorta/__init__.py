@@ -23,4 +23,15 @@ class Vorta(object):
         while True:
             for event in self.client.rtm_read():
                 self.output_debug('received event', event)
+                self.handle_event(event)
             time.sleep(1)
+
+    def handle_event(self, event):
+        event_handler = 'event_%s' % event['type']
+        if hasattr(self, event_handler):
+            attr = getattr(self, event_handler)
+            if callable(attr):
+                attr(event)
+
+    def event_message(self, event):
+        print('*** %s' % event['text'])
