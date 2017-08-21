@@ -143,10 +143,10 @@ class Vorta(object):
 
 
     def event_message(self, event):
+        if event.channel.startswith('D'):
+            return self.event_im_message(event)
         if event.text.startswith(self.at_me):
             return self.event_at_message(event)
-        if event.channel.startswith('D'):
-            return self.event_dm_message(event)
         return self.event_chat_message(event)
 
     def event_chat_message(self, event):
@@ -156,5 +156,5 @@ class Vorta(object):
         text = event.text[len(self.at_me):]
         print('*** %s @ message in %s: %s' % (event.user_name, event.channel_name, text))
 
-    def event_dm_message(self, event):
+    def event_im_message(self, event):
         print('*** IM from %s: %s' % (event.user_name, event.text))
