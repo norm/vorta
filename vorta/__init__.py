@@ -101,6 +101,23 @@ class Vorta(object):
             channel=channel_id,
         )
 
+    def send_message(self, text, channel, attachments=None):
+        return self.client.api_call(
+            'chat.postMessage',
+            text=text,
+            channel=channel,
+            attachments=attachments,
+        )
+
+    def update_message(self, text, channel_id, message_ts, attachments=None):
+        return self.client.api_call(
+            'chat.update',
+            text=text,
+            channel=channel_id,
+            ts=message_ts,
+            attachments=attachments,
+        )
+
     def channel_name(self, channel_id):
         return '#%s' % self.fetch_channel_info(channel_id)['channel']['name']
 
