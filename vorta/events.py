@@ -28,4 +28,13 @@ class MessageEvent(object):
 
     @property
     def user_name(self):
-        return self.vorta.user_name(self.event['user'])
+        if self.event.get('message') is not None:
+            if self.event['message'].get('username') is not None:
+                return self.event['message']['username']
+            else:
+                return self.vorta.user_name(self.event['message']['user'])
+        else:
+            if self.event.get('username') is not None:
+                return self.event['username']
+            else:
+                return self.vorta.user_name(self.event['user'])
