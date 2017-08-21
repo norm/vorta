@@ -24,6 +24,7 @@ class Subprocess(object):
         process = subprocess.Popen(
             shlex.split(self.command),
             stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
         self.subprocess_started()
 
