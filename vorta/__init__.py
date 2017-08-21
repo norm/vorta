@@ -16,6 +16,8 @@ class Vorta(object):
         self.client = SlackClient(token)
         self.debug = debug
         self._message_id = 1
+        self.identity = self.fetch_identity()
+        self.at_me = '<@%s> ' % self.identity['user_id']
         self.websocket_url = self.fetch_websocket_url()
         self.check_channels()
         self.control_loop()
@@ -26,6 +28,9 @@ class Vorta(object):
     def output_debug(self, *args):
         if self.debug:
             print(*args)
+
+    def fetch_identity(self):
+        return self.client.api_call('auth.test')
 
     def fetch_websocket_url(self):
         return self.client.api_call('rtm.start')['url']
@@ -100,4 +105,17 @@ class Vorta(object):
         return '#%s' % self.fetch_channel_info(channel_id)['channel']['name']
 
     def event_message(self, event):
+        if event['text'].startswith(self.at_me):
+            return self.event_at_message(event)
+        if event['channel'].startswith('D'):
+            return self.event_dm_message(event)
+        return self.event_chat_message(event)
+
+    def event_chat_message(self, event):
         print('*** %s: %s' % (self.channel_name(event['channel']), event['text']))
+
+    def event_at_message(self, event):
+        print('*** @ message %s: %s' % (self.channel_name(event['channel']), event['text']))
+
+    def event_dm_message(self, event):
+        print('*** DM: %s' % event['text'])
