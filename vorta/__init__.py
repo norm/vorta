@@ -6,6 +6,8 @@ import time
 from slackclient import SlackClient
 import websockets
 
+from vorta.events import MessageEvent
+
 
 class Vorta(object):
     desired_channels = []
@@ -84,12 +86,20 @@ class Vorta(object):
         content = json.dumps(data)
         yield from self.websocket.send(content)
 
+    def event_object(self, event):
+        if event['type'] == 'message':
+            return MessageEvent(self, event)
+
     def handle_event(self, event):
         event_handler = 'event_%s' % event['type']
         if hasattr(self, event_handler):
             attr = getattr(self, event_handler)
             if callable(attr):
-                attr(event)
+                obj = self.event_object(event)
+                if obj is not None:
+                    attr(obj)
+                else:
+                    attr(event)
 
     def fetch_channel_list(self):
         return self.client.api_call('channels.list')
@@ -121,18 +131,23 @@ class Vorta(object):
     def channel_name(self, channel_id):
         return '#%s' % self.fetch_channel_info(channel_id)['channel']['name']
 
+    def user_name(self, user_id):
+        return self.fetch_user_info(user_id)['user']['name']
+
+
     def event_message(self, event):
-        if event['text'].startswith(self.at_me):
+        if event.text.startswith(self.at_me):
             return self.event_at_message(event)
-        if event['channel'].startswith('D'):
+        if event.channel.startswith('D'):
             return self.event_dm_message(event)
         return self.event_chat_message(event)
 
     def event_chat_message(self, event):
-        print('*** %s: %s' % (self.channel_name(event['channel']), event['text']))
+        print('*** %s: %s' % (event.channel_name, event.text))
 
     def event_at_message(self, event):
-        print('*** @ message %s: %s' % (self.channel_name(event['channel']), event['text']))
+        text = event.text[len(self.at_me):]
+        print('*** @ message in %s: %s' % (event.channel_name, text))
 
     def event_dm_message(self, event):
-        print('*** DM: %s' % event['text'])
+        print('*** DM: %s' % event.text)
