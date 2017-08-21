@@ -26,6 +26,7 @@ class Subprocess(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
+        self.start_time = time.time()
         self.subprocess_started()
 
         while True:
@@ -98,7 +99,7 @@ class ReportingSubprocess(ThreadedSubprocess):
     def subprocess_exited(self):
         self.attachment.update({
             'color': self.success_rgb,
-            'footer': 'Finished',
+            'footer': 'Finished (took %ss)' % int(time.time() - self.start_time),
             'pretext': 'Ran `%s`.' % self.command,
             'text': '```%s```' % self.output,
             'ts': int(time.time()),
@@ -113,7 +114,7 @@ class ReportingSubprocess(ThreadedSubprocess):
         if self.exit_code:
             self.attachment.update({
                 'color': self.failure_rgb,
-                'footer': 'Finished (with error)',
+                'footer': 'Finished, with error (took %ss)' % int(time.time() - self.start_time),
                 'pretext': 'Ran `%s`, which failed.' % self.command,
             })
 
