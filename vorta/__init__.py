@@ -1,7 +1,10 @@
+import asyncio
 from functools import lru_cache
+import json
 import time
 
 from slackclient import SlackClient
+import websockets
 
 
 class Vorta(object):
@@ -11,7 +14,8 @@ class Vorta(object):
         self.token = token
         self.client = SlackClient(token)
         self.debug = debug
-        self.connect()
+        self.websocket_url = self.fetch_websocket_url()
+        self.check_channels()
         self.control_loop()
 
     def get_desired_channels(self):
@@ -21,9 +25,11 @@ class Vorta(object):
         if self.debug:
             print(*args)
 
-    def connect(self):
-        self.client.rtm_connect()
-        print('*** connected')
+    def fetch_websocket_url(self):
+        return self.client.api_call('rtm.start')['url']
+
+    def check_channels(self):
+        # FIXME pagination of channel list
         channels = self.fetch_channel_list()['channels']
         channel_names = [
             '#%s' % channel['name']
@@ -38,11 +44,21 @@ class Vorta(object):
                     print('*** not in desired channel #%s' % channel['name'])
 
     def control_loop(self):
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(
+            asyncio.gather(self.websocket_handler())
+        )
+
+    @asyncio.coroutine
+    def websocket_handler(self):
+        self.websocket = yield from websockets.connect(self.websocket_url)
         while True:
-            for event in self.client.rtm_read():
-                self.output_debug('received event', event)
-                self.handle_event(event)
-            time.sleep(1)
+            content = yield from self.websocket.recv()
+            if content is None:
+                break
+            event = json.loads(content)
+            self.output_debug('received %s event' % event['type'], event)
+            self.handle_event(event)
 
     def handle_event(self, event):
         event_handler = 'event_%s' % event['type']

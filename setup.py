@@ -5,5 +5,6 @@ setup(
     name='vorta',
     install_requires=[
         'slackclient',
+        'websockets',
     ],
 )
