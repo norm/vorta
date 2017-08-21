@@ -9,11 +9,13 @@ import websockets
 
 class Vorta(object):
     desired_channels = []
+    keepalive_interval = 60
 
     def __init__(self, token=None, debug=False):
         self.token = token
         self.client = SlackClient(token)
         self.debug = debug
+        self._message_id = 1
         self.websocket_url = self.fetch_websocket_url()
         self.check_channels()
         self.control_loop()
@@ -52,6 +54,7 @@ class Vorta(object):
     @asyncio.coroutine
     def websocket_handler(self):
         self.websocket = yield from websockets.connect(self.websocket_url)
+        asyncio.async(self.keepalives())
         while True:
             content = yield from self.websocket.recv()
             if content is None:
@@ -59,6 +62,22 @@ class Vorta(object):
             event = json.loads(content)
             self.output_debug('received %s event' % event['type'], event)
             self.handle_event(event)
+
+    @asyncio.coroutine
+    def keepalives(self):
+        while True:
+            yield from asyncio.sleep(self.keepalive_interval)
+            yield from self.ping()
+
+    @asyncio.coroutine
+    def ping(self):
+        self._message_id += 1
+        data = {
+            'id': self._message_id,
+            'type': 'ping'
+        }
+        content = json.dumps(data)
+        yield from self.websocket.send(content)
 
     def handle_event(self, event):
         event_handler = 'event_%s' % event['type']
