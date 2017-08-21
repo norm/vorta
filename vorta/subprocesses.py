@@ -81,17 +81,18 @@ class ReportingSubprocess(ThreadedSubprocess):
         self.last_update = time.time() - (self.update_interval + 0.5)
 
     def output_updated(self):
-        # update the output only after sufficient time has passed
-        # since the last, to avoid spamming slack
-        if time.time() - self.last_update > self.update_interval:
-            self.last_update = time.time()
-            self.attachment.update({'text': '```%s```' % self.output})
-            result = self.vorta.update_message(
-                '',
-                self.channel_id,
-                self.message_ts,
-                attachments=json.dumps([self.attachment])
-            )
+        if self.output:
+            # update the output only after sufficient time has passed
+            # since the last, to avoid spamming slack
+            if time.time() - self.last_update > self.update_interval:
+                self.last_update = time.time()
+                self.attachment.update({'text': '```%s```' % self.output})
+                result = self.vorta.update_message(
+                    '',
+                    self.channel_id,
+                    self.message_ts,
+                    attachments=json.dumps([self.attachment])
+                )
 
     def subprocess_exited(self):
         self.attachment.update({
@@ -101,6 +102,11 @@ class ReportingSubprocess(ThreadedSubprocess):
             'text': '```%s```' % self.output,
             'ts': int(time.time()),
         })
+
+        if not self.output:
+            self.attachment.update({
+                'text': '_(no output)_'
+            })
 
         # indicate when errors occur running the script
         if self.exit_code:
