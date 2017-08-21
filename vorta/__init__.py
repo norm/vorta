@@ -111,6 +111,13 @@ class Vorta(object):
             channel=channel_id,
         )
 
+    @lru_cache(maxsize=256)
+    def fetch_user_info(self, user_id):
+        return self.client.api_call(
+            'users.info',
+            user=user_id,
+        )
+
     def send_message(self, text, channel, attachments=None):
         return self.client.api_call(
             'chat.postMessage',
@@ -143,11 +150,11 @@ class Vorta(object):
         return self.event_chat_message(event)
 
     def event_chat_message(self, event):
-        print('*** %s: %s' % (event.channel_name, event.text))
+        print('*** %s in %s: %s' % (event.user_name, event.channel_name, event.text))
 
     def event_at_message(self, event):
         text = event.text[len(self.at_me):]
-        print('*** @ message in %s: %s' % (event.channel_name, text))
+        print('*** %s @ message in %s: %s' % (event.user_name, event.channel_name, text))
 
     def event_dm_message(self, event):
-        print('*** DM: %s' % event.text)
+        print('*** IM from %s: %s' % (event.user_name, event.text))

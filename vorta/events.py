@@ -21,3 +21,11 @@ class MessageEvent(object):
     @property
     def channel_name(self):
         return self.vorta.channel_name(self.channel)
+
+    @property
+    def user(self):
+        return self.event['user']
+
+    @property
+    def user_name(self):
+        return self.vorta.user_name(self.event['user'])
