@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd $HOME/Code/moneyadviceservice/new_builder
+
+./commands/deploy "$@"

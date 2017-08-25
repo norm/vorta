@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+cd $HOME/Code/moneyadviceservice/new_builder
+
+./commands/diff "$@"

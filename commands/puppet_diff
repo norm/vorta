@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd $HOME/Code/moneyadviceservice/scripts
+rake package:puppet
+ENVIRONMENT=staging ./deployer/new_puppet_diff "$@"

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for f in $(seq 1 3); do
+    echo "sequence $f"
+    sleep 2
+done

@@ -124,6 +124,7 @@ class Vorta(object):
             text=text,
             channel=channel,
             attachments=attachments,
+            as_user=True,
         )
 
     def update_message(self, text, channel_id, message_ts, attachments=None):
@@ -133,6 +134,7 @@ class Vorta(object):
             channel=channel_id,
             ts=message_ts,
             attachments=attachments,
+            as_user=True,
         )
 
     def channel_name(self, channel_id):
